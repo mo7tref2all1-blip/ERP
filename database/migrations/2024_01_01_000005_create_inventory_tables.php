@@ -54,7 +54,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained();
             $table->foreignId('branch_id')->constrained();
-            $table->foreignId('supplier_invoice_item_id')->nullable()->constrained();
+            $table->unsignedBigInteger('supplier_invoice_item_id')->nullable();
             $table->decimal('quantity', 15, 3); // الكمية الأصلية
             $table->decimal('remaining_quantity', 15, 3); // الكمية المتبقية
             $table->decimal('cost_egp', 15, 4); // التكلفة بالجنيه
