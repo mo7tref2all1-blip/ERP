@@ -1,0 +1,44 @@
+name: Initial Setup (Run Once)
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_seeders:
+        description: 'Run database seeders?'
+        required: true
+        default: 'true'
+        type: boolean
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    name: Initial Database Setup
+
+    steps:
+      - name: Setup Instructions
+        run: |
+          echo "============================================"
+          echo "خطوات الإعداد الأولي على cPanel"
+          echo "============================================"
+          echo ""
+          echo "1. ارفع الملفات عبر GitHub Actions (deploy.yml)"
+          echo ""
+          echo "2. في Terminal بـ cPanel:"
+          echo "   cd /home/username/public_html"
+          echo "   cp .env.example .env"
+          echo "   php artisan key:generate"
+          echo ""
+          echo "3. عدّل ملف .env بمعلومات قاعدة البيانات"
+          echo ""
+          echo "4. شغّل:"
+          echo "   php artisan migrate --force"
+          echo "   php artisan db:seed --force"
+          echo "   php artisan storage:link"
+          echo "   php artisan optimize"
+          echo "   php artisan filament:assets"
+          echo ""
+          echo "5. بيانات الدخول الأولية:"
+          echo "   Email: admin@wood-erp.com"
+          echo "   Password: password"
+          echo ""
+          echo "6. غيّر كلمة المرور فور الدخول!"
