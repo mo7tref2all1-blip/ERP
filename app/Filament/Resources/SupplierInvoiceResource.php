@@ -77,21 +77,21 @@ class SupplierInvoiceResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->reactive()
+                            ->live()
                             ->columnSpan(2),
                         Forms\Components\TextInput::make('quantity')
                             ->label('الكمية')
                             ->numeric()
                             ->required()
                             ->minValue(0.001)
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateItemTotal($get, $set)),
                         Forms\Components\Radio::make('price_currency')
                             ->label('عملة السعر')
                             ->options(['egp' => 'جنيه مصري', 'usd' => 'دولار أمريكي'])
                             ->default('egp')
                             ->inline()
-                            ->reactive()
+                            ->live()
                             ->columnSpanFull(),
                         Forms\Components\TextInput::make('cost_usd')
                             ->label('سعر الوحدة (دولار)')
@@ -99,7 +99,7 @@ class SupplierInvoiceResource extends Resource
                             ->minValue(0)
                             ->prefix('$')
                             ->visible(fn (Get $get) => $get('price_currency') === 'usd')
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateFromDollar($get, $set)),
                         Forms\Components\TextInput::make('dollar_rate')
                             ->label('سعر الدولار (جنيه)')
@@ -107,7 +107,7 @@ class SupplierInvoiceResource extends Resource
                             ->minValue(0)
                             ->prefix('ج.م')
                             ->visible(fn (Get $get) => $get('price_currency') === 'usd')
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateFromDollar($get, $set)),
                         Forms\Components\TextInput::make('cost_egp')
                             ->label('سعر الوحدة (جنيه)')
@@ -115,7 +115,7 @@ class SupplierInvoiceResource extends Resource
                             ->required()
                             ->minValue(0)
                             ->prefix('ج.م')
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateItemTotal($get, $set)),
                         Forms\Components\TextInput::make('total_egp')
                             ->label('الإجمالي (جنيه)')
@@ -128,7 +128,7 @@ class SupplierInvoiceResource extends Resource
                     ])
                     ->columns(4)
                     ->addActionLabel('إضافة صنف')
-                    ->reactive()
+                    ->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => static::updateInvoiceTotal($get, $set))
                     ->columnSpanFull(),
             ]),

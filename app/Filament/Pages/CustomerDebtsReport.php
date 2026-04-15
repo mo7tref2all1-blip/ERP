@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Customer;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\DB;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -27,7 +28,7 @@ class CustomerDebtsReport extends Page implements HasTable
                 Customer::withSum('invoices as total_invoices_sum', 'net_amount')
                     ->withSum('payments as total_payments_sum', 'amount')
                     ->having(
-                        \DB::raw('(COALESCE(opening_balance, 0) + COALESCE(total_invoices_sum, 0) - COALESCE(total_payments_sum, 0))'),
+                        DB::raw('(COALESCE(opening_balance, 0) + COALESCE(total_invoices_sum, 0) - COALESCE(total_payments_sum, 0))'),
                         '>',
                         0
                     )

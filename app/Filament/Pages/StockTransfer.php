@@ -36,13 +36,13 @@ class StockTransfer extends Page implements HasForms
                     ->options(Product::where('is_active', true)->pluck('name', 'id'))
                     ->searchable()
                     ->required()
-                    ->reactive()
+                    ->live()
                     ->afterStateUpdated(fn ($state, Get $get) => $this->updateAvailableQty($state, $get('from_branch_id'))),
                 Forms\Components\Select::make('from_branch_id')
                     ->label('من فرع')
                     ->options(Branch::where('is_active', true)->pluck('name', 'id'))
                     ->required()
-                    ->reactive()
+                    ->live()
                     ->afterStateUpdated(fn ($state, Get $get) => $this->updateAvailableQty($get('product_id'), $state)),
                 Forms\Components\Select::make('to_branch_id')
                     ->label('إلى فرع')

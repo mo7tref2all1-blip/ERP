@@ -71,7 +71,7 @@ class CustomerQuoteResource extends Resource
                             ->options(Product::where('is_active', true)->pluck('name', 'id'))
                             ->searchable()
                             ->required()
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(function (Get $get, Set $set, $state) {
                                 if ($state) {
                                     $product = Product::find($state);
@@ -87,7 +87,7 @@ class CustomerQuoteResource extends Resource
                             ->numeric()
                             ->required()
                             ->minValue(0.001)
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calcTotal($get, $set)),
                         Forms\Components\TextInput::make('default_price')
                             ->label('السعر الافتراضي')
@@ -99,14 +99,14 @@ class CustomerQuoteResource extends Resource
                             ->numeric()
                             ->required()
                             ->prefix('ج.م')
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calcTotal($get, $set)),
                         Forms\Components\TextInput::make('discount_percent')
                             ->label('خصم %')
                             ->numeric()
                             ->default(0)
                             ->suffix('%')
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calcTotal($get, $set)),
                         Forms\Components\TextInput::make('total')
                             ->label('الإجمالي')
@@ -116,7 +116,7 @@ class CustomerQuoteResource extends Resource
                     ])
                     ->columns(4)
                     ->addActionLabel('إضافة صنف')
-                    ->reactive()
+                    ->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => self::updateTotals($get, $set))
                     ->columnSpanFull(),
             ]),
@@ -132,7 +132,7 @@ class CustomerQuoteResource extends Resource
                     ->numeric()
                     ->default(0)
                     ->prefix('ج.م')
-                    ->reactive()
+                    ->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => $set('net_amount', floatval($get('total_amount')) - floatval($get('discount_amount')))),
                 Forms\Components\TextInput::make('net_amount')
                     ->label('الصافي')

@@ -78,7 +78,7 @@ class CustomerInvoiceResource extends Resource
                             ->options(Product::where('is_active', true)->pluck('name', 'id'))
                             ->searchable()
                             ->required()
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(function (Get $get, Set $set, $state) {
                                 if ($state) {
                                     $product = Product::find($state);
@@ -95,7 +95,7 @@ class CustomerInvoiceResource extends Resource
                             ->numeric()
                             ->required()
                             ->minValue(0.001)
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateLineTotal($get, $set)),
                         Forms\Components\TextInput::make('default_price')
                             ->label('السعر الافتراضي')
@@ -108,7 +108,7 @@ class CustomerInvoiceResource extends Resource
                             ->required()
                             ->minValue(0)
                             ->prefix('ج.م')
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateLineTotal($get, $set)),
                         Forms\Components\TextInput::make('discount_percent')
                             ->label('خصم %')
@@ -117,7 +117,7 @@ class CustomerInvoiceResource extends Resource
                             ->minValue(0)
                             ->maxValue(auth()->user()?->hasRole('salesperson') ? $maxDiscountPercent : 100)
                             ->suffix('%')
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateLineTotal($get, $set)),
                         Forms\Components\TextInput::make('total')
                             ->label('الإجمالي')
@@ -130,7 +130,7 @@ class CustomerInvoiceResource extends Resource
                     ])
                     ->columns(4)
                     ->addActionLabel('إضافة صنف')
-                    ->reactive()
+                    ->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => self::updateTotals($get, $set))
                     ->columnSpanFull(),
             ]),
@@ -146,7 +146,7 @@ class CustomerInvoiceResource extends Resource
                     ->numeric()
                     ->default(0)
                     ->prefix('ج.م')
-                    ->reactive()
+                    ->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => $set('net_amount', floatval($get('total_amount')) - floatval($get('discount_amount')))),
                 Forms\Components\TextInput::make('net_amount')
                     ->label('صافي الفاتورة')
