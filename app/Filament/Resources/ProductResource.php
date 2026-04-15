@@ -147,10 +147,6 @@ class ProductResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make()->label('تعديل'),
-                Tables\Actions\Action::make('view_stock')
-                    ->label('المخزون')
-                    ->icon('heroicon-o-archive-box')
-                    ->url(fn (Product $record) => route('filament.admin.resources.products.view-stock', $record)),
                 Tables\Actions\DeleteAction::make()->label('حذف'),
             ])
             ->bulkActions([

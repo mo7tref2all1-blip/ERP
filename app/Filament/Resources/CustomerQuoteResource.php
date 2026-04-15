@@ -169,14 +169,22 @@ class CustomerQuoteResource extends Resource
                 Tables\Columns\TextColumn::make('quote_date')->label('التاريخ')->date('d/m/Y')->sortable(),
                 Tables\Columns\TextColumn::make('valid_until')->label('صالح حتى')->date('d/m/Y'),
                 Tables\Columns\TextColumn::make('net_amount')->label('الإجمالي')->money('EGP'),
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('الحالة')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => match($state) {
                         'draft' => 'مسودة', 'sent' => 'مُرسل',
                         'accepted' => 'مقبول', 'rejected' => 'مرفوض', 'expired' => 'منتهي',
                         default => $state,
                     })
-                    ->colors(['gray' => 'draft', 'info' => 'sent', 'success' => 'accepted', 'danger' => 'rejected', 'warning' => 'expired']),
+                    ->color(fn ($state) => match($state) {
+                        'draft' => 'gray',
+                        'sent' => 'info',
+                        'accepted' => 'success',
+                        'rejected' => 'danger',
+                        'expired' => 'warning',
+                        default => 'gray',
+                    }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')

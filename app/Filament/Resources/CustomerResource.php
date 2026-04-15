@@ -68,10 +68,14 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('phone')
                     ->label('الهاتف')
                     ->searchable(),
-                Tables\Columns\BadgeColumn::make('type')
+                Tables\Columns\TextColumn::make('type')
                     ->label('النوع')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => $state === 'company' ? 'شركة' : 'فرد')
-                    ->colors(['info' => 'company', 'gray' => 'individual']),
+                    ->color(fn ($state) => match($state) {
+                        'company' => 'info',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('total_invoices')
                     ->label('إجمالي الفواتير')
                     ->getStateUsing(fn (Customer $record) => number_format($record->total_invoices, 2) . ' ج.م')

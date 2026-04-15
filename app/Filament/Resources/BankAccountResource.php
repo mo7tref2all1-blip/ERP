@@ -62,10 +62,15 @@ class BankAccountResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
-                Tables\Columns\BadgeColumn::make('type')
+                Tables\Columns\TextColumn::make('type')
                     ->label('النوع')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => $state === 'bank' ? 'بنك' : 'خزينة')
-                    ->colors(['info' => 'bank', 'warning' => 'cash']),
+                    ->color(fn ($state) => match($state) {
+                        'bank' => 'info',
+                        'cash' => 'warning',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('bank_name')
                     ->label('البنك'),
                 Tables\Columns\TextColumn::make('opening_balance')

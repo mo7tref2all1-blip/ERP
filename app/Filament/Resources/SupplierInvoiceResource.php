@@ -199,19 +199,21 @@ class SupplierInvoiceResource extends Resource
                     ->getStateUsing(fn (SupplierInvoice $record) => $record->remaining_amount)
                     ->money('EGP')
                     ->color(fn (SupplierInvoice $record) => $record->remaining_amount > 0 ? 'danger' : 'success'),
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('الحالة')
+                    ->badge()
                     ->formatStateUsing(fn (string $state) => match($state) {
                         'unpaid' => 'غير مدفوعة',
                         'partial' => 'جزئي',
                         'paid' => 'مدفوعة',
                         default => $state,
                     })
-                    ->colors([
-                        'danger' => 'unpaid',
-                        'warning' => 'partial',
-                        'success' => 'paid',
-                    ]),
+                    ->color(fn (string $state) => match($state) {
+                        'unpaid' => 'danger',
+                        'partial' => 'warning',
+                        'paid' => 'success',
+                        default => 'gray',
+                    }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('supplier_id')
