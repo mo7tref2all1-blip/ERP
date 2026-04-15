@@ -10,28 +10,27 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->nullable()->constrained('product_categories')->nullOnDelete();
+            $table->unsignedBigInteger('category_id')->nullable();
             $table->string('name');
-            $table->string('code')->unique()->nullable(); // كود الصنف
-            $table->string('type')->nullable(); // نوع الخشب: صنوبر، بلوط، إلخ
-            $table->decimal('thickness_mm', 8, 2)->nullable(); // السمك بالمم
-            $table->string('dimensions')->nullable(); // الأبعاد (مثلاً: 240x120 سم)
-            $table->enum('unit', ['meter', 'board', 'sqm', 'ton', 'piece', 'kg'])->default('piece'); // وحدة القياس
-            $table->decimal('default_price', 15, 2)->default(0); // سعر البيع الافتراضي
-            $table->decimal('min_stock', 10, 2)->default(0); // الحد الأدنى للمخزون
+            $table->string('code')->unique()->nullable();
+            $table->string('type')->nullable();
+            $table->decimal('thickness_mm', 8, 2)->nullable();
+            $table->string('dimensions')->nullable();
+            $table->enum('unit', ['meter', 'board', 'sqm', 'ton', 'piece', 'kg'])->default('piece');
+            $table->decimal('default_price', 15, 2)->default(0);
+            $table->decimal('min_stock', 10, 2)->default(0);
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
         });
 
-        // سجل تاريخ أسعار البيع
         Schema::create('product_prices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('product_id');
             $table->decimal('price', 15, 2);
             $table->date('valid_from');
-            $table->foreignId('created_by')->constrained('users');
+            $table->unsignedBigInteger('created_by');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

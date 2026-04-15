@@ -8,40 +8,38 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // مخزون كل فرع لكل صنف
         Schema::create('branch_stock', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('product_id');
             $table->decimal('quantity', 15, 3)->default(0);
             $table->timestamps();
 
             $table->unique(['branch_id', 'product_id']);
         });
 
-        // سجل حركات المخزون الكاملة
         Schema::create('stock_movements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained();
-            $table->foreignId('branch_id')->constrained();
-            $table->foreignId('to_branch_id')->nullable()->constrained('branches'); // للتحويل بين الفروع
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('to_branch_id')->nullable();
             $table->enum('type', [
-                'purchase',     // شراء/توريد
-                'sale',         // بيع
-                'transfer_in',  // تحويل وارد
-                'transfer_out', // تحويل صادر
-                'adjustment_add',   // تسوية إضافة
-                'adjustment_remove', // تسوية خصم
-                'return_to_supplier', // مرتجع للمورد
-                'return_from_customer', // مرتجع من العميل
+                'purchase',
+                'sale',
+                'transfer_in',
+                'transfer_out',
+                'adjustment_add',
+                'adjustment_remove',
+                'return_to_supplier',
+                'return_from_customer',
             ]);
-            $table->decimal('quantity', 15, 3); // موجب = إضافة، سالب = خصم
-            $table->decimal('quantity_before', 15, 3)->default(0); // الكمية قبل الحركة
-            $table->decimal('quantity_after', 15, 3)->default(0);  // الكمية بعد الحركة
-            $table->decimal('unit_cost', 15, 4)->nullable(); // تكلفة الوحدة وقت الحركة
-            $table->string('reference_type')->nullable(); // App\Models\SupplierInvoice
-            $table->unsignedBigInteger('reference_id')->nullable(); // رقم الفاتورة
-            $table->foreignId('user_id')->constrained();
+            $table->decimal('quantity', 15, 3);
+            $table->decimal('quantity_before', 15, 3)->default(0);
+            $table->decimal('quantity_after', 15, 3)->default(0);
+            $table->decimal('unit_cost', 15, 4)->nullable();
+            $table->string('reference_type')->nullable();
+            $table->unsignedBigInteger('reference_id')->nullable();
+            $table->unsignedBigInteger('user_id');
             $table->text('notes')->nullable();
             $table->timestamps();
 
@@ -49,21 +47,20 @@ return new class extends Migration
             $table->index(['reference_type', 'reference_id']);
         });
 
-        // دفعات الشراء للـ FIFO
         Schema::create('stock_batches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained();
-            $table->foreignId('branch_id')->constrained();
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('branch_id');
             $table->unsignedBigInteger('supplier_invoice_item_id')->nullable();
-            $table->decimal('quantity', 15, 3); // الكمية الأصلية
-            $table->decimal('remaining_quantity', 15, 3); // الكمية المتبقية
-            $table->decimal('cost_egp', 15, 4); // التكلفة بالجنيه
-            $table->decimal('cost_usd', 15, 4)->nullable(); // التكلفة بالدولار (إن وُجد)
-            $table->decimal('dollar_rate', 10, 4)->nullable(); // سعر الدولار وقت الشراء
-            $table->date('batch_date'); // تاريخ الدفعة
+            $table->decimal('quantity', 15, 3);
+            $table->decimal('remaining_quantity', 15, 3);
+            $table->decimal('cost_egp', 15, 4);
+            $table->decimal('cost_usd', 15, 4)->nullable();
+            $table->decimal('dollar_rate', 10, 4)->nullable();
+            $table->date('batch_date');
             $table->timestamps();
 
-            $table->index(['product_id', 'branch_id', 'batch_date']); // للـ FIFO
+            $table->index(['product_id', 'branch_id', 'batch_date']);
         });
     }
 

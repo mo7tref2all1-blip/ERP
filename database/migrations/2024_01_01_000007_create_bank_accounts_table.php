@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('bank_accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // اسم الحساب (البنك الأهلي، خزينة الرئيسية، إلخ)
+            $table->string('name');
             $table->enum('type', ['bank', 'cash'])->default('cash');
             $table->string('bank_name')->nullable();
             $table->string('account_number')->nullable();
@@ -22,14 +22,14 @@ return new class extends Migration
 
         Schema::create('account_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bank_account_id')->constrained();
-            $table->enum('type', ['in', 'out']); // وارد / صادر
+            $table->unsignedBigInteger('bank_account_id');
+            $table->enum('type', ['in', 'out']);
             $table->decimal('amount', 15, 2);
-            $table->string('reference_type')->nullable(); // App\Models\CustomerPayment
+            $table->string('reference_type')->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();
             $table->string('description')->nullable();
             $table->date('transaction_date');
-            $table->foreignId('created_by')->constrained('users');
+            $table->unsignedBigInteger('created_by');
             $table->timestamps();
 
             $table->index(['bank_account_id', 'transaction_date']);
