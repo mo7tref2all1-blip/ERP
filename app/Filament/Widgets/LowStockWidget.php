@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class LowStockWidget extends BaseWidget
 {
-    protected ?string $heading = 'تحذير: أصناف وصلت الحد الأدنى للمخزون';
+    protected static ?string $heading = 'تحذير: أصناف وصلت الحد الأدنى للمخزون';
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
 

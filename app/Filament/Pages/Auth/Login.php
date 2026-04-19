@@ -8,6 +8,6 @@ class Login extends BaseLogin
 {
     protected function getRedirectUrl(): string
     {
-        return $this->panel->getUrl();
+        return url('/admin');
     }
 }

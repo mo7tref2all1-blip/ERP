@@ -89,7 +89,7 @@ class BankAccountResource extends Resource
                 Tables\Actions\Action::make('transactions')
                     ->label('الحركات')
                     ->icon('heroicon-o-list-bullet')
-                    ->url(fn (BankAccount $record) => route('filament.admin.resources.account-transactions.index', ['tableFilters[bank_account_id][value]' => $record->id])),
+                    ->url(fn (BankAccount $record) => '/admin/bank-accounts/' . $record->id . '/edit'),
             ]);
     }
 

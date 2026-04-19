@@ -9,7 +9,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class UnpaidInvoicesWidget extends BaseWidget
 {
-    protected ?string $heading = 'الفواتير غير المدفوعة (العملاء)';
+    protected static ?string $heading = 'الفواتير غير المدفوعة (العملاء)';
     protected static ?int $sort = 3;
     protected int | string | array $columnSpan = 1;
 

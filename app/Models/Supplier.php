@@ -35,7 +35,7 @@ class Supplier extends Model
      */
     public function getTotalInvoicesAttribute(): float
     {
-        return $this->invoices()->sum('net_amount') + $this->opening_balance;
+        return $this->invoices()->sum('total_amount') + $this->opening_balance;
     }
 
     /**

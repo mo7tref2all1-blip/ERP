@@ -8,7 +8,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class AccountsOverviewWidget extends BaseWidget
 {
-    protected static ?string $heading = 'أرصدة الحسابات والخزائن';
+    protected ?string $heading = 'أرصدة الحسابات والخزائن';
     protected static ?int $sort = 4;
     protected int | string | array $columnSpan = 1;
 

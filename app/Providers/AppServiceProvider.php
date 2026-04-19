@@ -10,7 +10,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // تعيين public_path للـ webroot مباشرة (cPanel: public_html = project root)
+        $this->app->bind('path.public', fn () => base_path());
     }
 
     public function boot(): void

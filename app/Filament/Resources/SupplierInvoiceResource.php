@@ -92,6 +92,7 @@ class SupplierInvoiceResource extends Resource
                             ->default('egp')
                             ->inline()
                             ->live()
+                            ->dehydrated(false)
                             ->columnSpanFull(),
                         Forms\Components\TextInput::make('cost_usd')
                             ->label('سعر الوحدة (دولار)')

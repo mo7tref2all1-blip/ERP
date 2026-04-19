@@ -66,6 +66,22 @@ class SupplierInvoice extends Model
     /**
      * تحديث حالة الدفع تلقائياً
      */
+    protected static function booted(): void
+    {
+        static::deleting(function (SupplierInvoice $invoice) {
+            foreach ($invoice->items as $item) {
+                \App\Models\BranchStock::where('product_id', $item->product_id)
+                    ->where('branch_id', $invoice->branch_id)
+                    ->decrement('quantity', $item->quantity);
+                $item->stockBatch()->delete();
+            }
+            $invoice->payments()->delete();
+            \App\Models\AccountTransaction::where('reference_type', SupplierInvoice::class)
+                ->where('reference_id', $invoice->id)
+                ->delete();
+        });
+    }
+
     public function updatePaymentStatus(): void
     {
         $paid = $this->payments()->sum('amount');

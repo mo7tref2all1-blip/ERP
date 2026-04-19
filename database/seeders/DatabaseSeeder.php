@@ -5,12 +5,9 @@ namespace Database\Seeders;
 use App\Models\BankAccount;
 use App\Models\Branch;
 use App\Models\ProductCategory;
-use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,6 +15,9 @@ class DatabaseSeeder extends Seeder
     {
         // ============ الأدوار والصلاحيات ============
         $this->call(RolesAndPermissionsSeeder::class);
+
+        // ============ الإعدادات ============
+        $this->call(SettingsSeeder::class);
 
         // ============ الفرع الرئيسي ============
         $mainBranch = Branch::create([
@@ -93,17 +93,5 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // ============ الإعدادات الأساسية ============
-        $settings = [
-            ['key' => 'company_name', 'value' => 'شركة الأخشاب المتحدة', 'group' => 'general'],
-            ['key' => 'company_phone', 'value' => '01000000000', 'group' => 'general'],
-            ['key' => 'company_address', 'value' => 'القاهرة، مصر', 'group' => 'general'],
-            ['key' => 'salesperson_max_discount', 'value' => '10', 'group' => 'sales'],
-            ['key' => 'default_dollar_rate', 'value' => '50', 'group' => 'finance'],
-            ['key' => 'invoice_footer_text', 'value' => 'شكراً لتعاملكم معنا - يسعدنا خدمتكم دائماً', 'group' => 'invoice'],
-        ];
-        foreach ($settings as $setting) {
-            Setting::create($setting);
-        }
     }
 }

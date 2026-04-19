@@ -82,6 +82,21 @@ class CustomerInvoice extends Model
     /**
      * توليد رقم فاتورة فريد
      */
+    protected static function booted(): void
+    {
+        static::deleting(function (CustomerInvoice $invoice) {
+            foreach ($invoice->items as $item) {
+                \App\Models\BranchStock::where('product_id', $item->product_id)
+                    ->where('branch_id', $invoice->branch_id)
+                    ->increment('quantity', $item->quantity);
+            }
+            $invoice->payments()->delete();
+            \App\Models\AccountTransaction::where('reference_type', CustomerInvoice::class)
+                ->where('reference_id', $invoice->id)
+                ->delete();
+        });
+    }
+
     public static function generateNumber(): string
     {
         $year = date('Y');

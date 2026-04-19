@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\AccountsOverviewWidget;
 use App\Filament\Widgets\LowStockWidget;
 use App\Filament\Widgets\RevenueChartWidget;
@@ -13,12 +12,10 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\MaxWidth;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -37,15 +34,15 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->colors([
-                'primary' => Color::hex('#8B6914'), // بني ذهبي يناسب شركة أخشاب
+                'primary' => Color::hex(\App\Models\Setting::get('primary_color', '#8B6914')),
                 'gray' => Color::Zinc,
             ])
             ->font('Cairo')
-            ->brandName('نظام إدارة الأخشاب')
+            ->brandName(fn () => \App\Models\Setting::get('company_name', 'نظام ERP'))
+            ->brandLogo(fn () => \App\Models\Setting::get('logo_url'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Dashboard::class,
+                \Filament\Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -97,23 +94,14 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make()
-                    ->gridColumns([
-                        'default' => 1,
-                        'sm' => 2,
-                        'lg' => 3,
-                    ])
+                    ->gridColumns(['default' => 1, 'sm' => 2, 'lg' => 3])
                     ->sectionColumnSpan(1)
-                    ->checkboxListColumns([
-                        'default' => 1,
-                        'sm' => 2,
-                        'lg' => 4,
-                    ]),
+                    ->checkboxListColumns(['default' => 1, 'sm' => 2, 'lg' => 4]),
             ])
             ->maxContentWidth(MaxWidth::Full)
             ->sidebarCollapsibleOnDesktop()
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
-            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
-            ->spa();
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k']);
     }
 }
