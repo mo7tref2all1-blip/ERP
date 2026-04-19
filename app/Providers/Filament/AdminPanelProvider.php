@@ -43,6 +43,14 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->pages([
                 \Filament\Pages\Dashboard::class,
+                \App\Filament\Pages\GeneralSettings::class,
+                \App\Filament\Pages\Settings::class,
+                \App\Filament\Pages\SystemUpdate::class,
+                \App\Filament\Pages\StockTransfer::class,
+                \App\Filament\Pages\InventoryReport::class,
+                \App\Filament\Pages\ProfitLossReport::class,
+                \App\Filament\Pages\CustomerDebtsReport::class,
+                \App\Filament\Pages\SupplierDuesReport::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
