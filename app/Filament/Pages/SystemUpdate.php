@@ -74,7 +74,9 @@ class SystemUpdate extends Page implements HasForms
 
         // نسخ الملفات مع تجاهل الملفات الحساسة
         $protected = ['.env', 'storage/', 'vendor/', 'css/', 'js/'];
-        $this->copyFiles($tempDir, base_path(), $protected);
+        $subDirs = glob($tempDir . '/*', GLOB_ONLYDIR);
+        $sourceDir = !empty($subDirs) ? $subDirs[0] : $tempDir;
+        $this->copyFiles($sourceDir, base_path(), $protected);
         $this->log[] = '✓ تم نسخ الملفات الجديدة';
 
         $this->deleteDirectory($tempDir);

@@ -8,12 +8,24 @@ class CreateCustomerInvoice extends CreateRecord {
     protected function getRedirectUrl(): string { return $this->getResource()::getUrl('index'); }
     protected function mutateFormDataBeforeCreate(array $data): array {
         $data['created_by'] = auth()->id();
-        $data['total_amount'] = collect($data['items'] ?? [])->sum('total');
-        $data['net_amount'] = $data['total_amount'] - floatval($data['discount_amount'] ?? 0);
+        $total = 0;
+        foreach ($data['items'] ?? [] as $item) {
+            if (is_array($item)) {
+                $total += floatval($item['total'] ?? 0);
+            }
+        }
+        $data['total_amount'] = $total;
+        $data['net_amount'] = $total - floatval($data['discount_amount'] ?? 0);
+        if ($data['net_amount'] <= 0) {
+            \Filament\Notifications\Notification::make()
+                ->danger()
+                ->title('لا يمكن حفظ فاتورة بإجمالي صفر')
+                ->send();
+            $this->halt();
+        }
         return $data;
     }
     protected function afterCreate(): void {
-        // خصم المخزون وحساب FIFO تلقائياً
         app(InventoryService::class)->deductStockFromSale($this->record);
     }
 }

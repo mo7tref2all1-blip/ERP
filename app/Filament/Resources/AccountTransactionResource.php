@@ -37,13 +37,15 @@ class AccountTransactionResource extends Resource
                     ->label('الحساب')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\BadgeColumn::make('type')
+                Tables\Columns\TextColumn::make('type')
                     ->label('النوع')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => $state === 'in' ? 'وارد' : 'صادر')
-                    ->colors([
-                        'success' => 'in',
-                        'danger' => 'out',
-                    ]),
+                    ->color(fn ($state) => match($state) {
+                        'in' => 'success',
+                        'out' => 'danger',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('amount')
                     ->label('المبلغ')
                     ->money('EGP')
@@ -76,8 +78,14 @@ class AccountTransactionResource extends Resource
                     ),
             ])
             ->defaultSort('transaction_date', 'desc')
-            ->actions([])
-            ->bulkActions([]);
+            ->actions([
+                Tables\Actions\DeleteAction::make()->label('حذف'),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make()->label('حذف المحدد'),
+                ]),
+            ]);
     }
 
     public static function getPages(): array
