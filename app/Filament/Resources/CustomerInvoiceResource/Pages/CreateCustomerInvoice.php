@@ -8,6 +8,8 @@ class CreateCustomerInvoice extends CreateRecord {
     protected function getRedirectUrl(): string { return $this->getResource()::getUrl('index'); }
     protected function mutateFormDataBeforeCreate(array $data): array {
         $data['created_by'] = auth()->id();
+        $data['total_amount'] = collect($data['items'] ?? [])->sum('total');
+        $data['net_amount'] = $data['total_amount'] - floatval($data['discount_amount'] ?? 0);
         return $data;
     }
     protected function afterCreate(): void {

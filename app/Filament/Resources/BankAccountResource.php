@@ -89,7 +89,14 @@ class BankAccountResource extends Resource
                 Tables\Actions\Action::make('transactions')
                     ->label('الحركات')
                     ->icon('heroicon-o-list-bullet')
-                    ->url(fn (BankAccount $record) => '/admin/bank-accounts/' . $record->id . '/edit'),
+                    ->url(fn (BankAccount $record) => '/admin/account-transactions?tableFilters[bank_account_id][value]=' . $record->id),
+                Tables\Actions\DeleteAction::make()
+                    ->label('حذف')
+                    ->before(function (BankAccount $record) {
+                        $record->transactions()->delete();
+                        $record->supplierPayments()->delete();
+                        $record->customerPayments()->delete();
+                    }),
             ]);
     }
 

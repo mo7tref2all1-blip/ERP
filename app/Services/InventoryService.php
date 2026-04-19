@@ -138,7 +138,7 @@ class InventoryService
             ->first();
 
         if (!$stock || $stock->quantity < $quantity) {
-            throw new \Exception("الكمية المطلوبة ({$quantity}) أكبر من المخزون المتاح ({$stock?->quantity ?? 0})");
+            throw new \Exception("الكمية المطلوبة ({$quantity}) أكبر من المخزون المتاح (" . ($stock ? $stock->quantity : 0) . ")");
         }
 
         $quantityBefore = $stock->quantity;

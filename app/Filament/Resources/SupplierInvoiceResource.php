@@ -47,7 +47,16 @@ class SupplierInvoiceResource extends Resource
                     ->label('رقم الفاتورة')
                     ->required()
                     ->unique(ignoreRecord: true)
-                    ->default(fn () => 'PUR-' . date('Y') . '-' . str_pad(SupplierInvoice::whereYear('created_at', date('Y'))->count() + 1, 4, '0', STR_PAD_LEFT)),
+                    ->default(function () {
+                        $year = date('Y');
+                        $count = SupplierInvoice::whereYear('created_at', $year)->count() + 1;
+                        $number = 'PUR-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+                        while (SupplierInvoice::where('invoice_number', $number)->exists()) {
+                            $count++;
+                            $number = 'PUR-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+                        }
+                        return $number;
+                    }),
                 Forms\Components\DatePicker::make('invoice_date')
                     ->label('تاريخ الفاتورة')
                     ->required()
@@ -84,7 +93,7 @@ class SupplierInvoiceResource extends Resource
                             ->numeric()
                             ->required()
                             ->minValue(0.001)
-                            ->live()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateItemTotal($get, $set)),
                         Forms\Components\Radio::make('price_currency')
                             ->label('عملة السعر')
@@ -100,7 +109,7 @@ class SupplierInvoiceResource extends Resource
                             ->minValue(0)
                             ->prefix('$')
                             ->visible(fn (Get $get) => $get('price_currency') === 'usd')
-                            ->live()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateFromDollar($get, $set)),
                         Forms\Components\TextInput::make('dollar_rate')
                             ->label('سعر الدولار (جنيه)')
@@ -108,7 +117,7 @@ class SupplierInvoiceResource extends Resource
                             ->minValue(0)
                             ->prefix('ج.م')
                             ->visible(fn (Get $get) => $get('price_currency') === 'usd')
-                            ->live()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateFromDollar($get, $set)),
                         Forms\Components\TextInput::make('cost_egp')
                             ->label('سعر الوحدة (جنيه)')
@@ -116,7 +125,7 @@ class SupplierInvoiceResource extends Resource
                             ->required()
                             ->minValue(0)
                             ->prefix('ج.م')
-                            ->live()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateItemTotal($get, $set)),
                         Forms\Components\TextInput::make('total_egp')
                             ->label('الإجمالي (جنيه)')
@@ -265,11 +274,22 @@ class SupplierInvoiceResource extends Resource
                             ->rows(2),
                     ])
                     ->action(function (SupplierInvoice $record, array $data) {
-                        $record->payments()->create([
+                        $payment = $record->payments()->create([
                             ...$data,
                             'supplier_id' => $record->supplier_id,
                             'created_by' => auth()->id(),
                         ]);
+                        \App\Models\AccountTransaction::create([
+                            'bank_account_id' => $data['bank_account_id'],
+                            'type' => 'out',
+                            'amount' => $data['amount'],
+                            'transaction_date' => $data['payment_date'],
+                            'reference_type' => \App\Models\SupplierPayment::class,
+                            'reference_id' => $payment->id,
+                            'description' => 'دفعة لمورد - فاتورة: ' . $record->invoice_number,
+                            'created_by' => auth()->id(),
+                        ]);
+                        $record->updatePaymentStatus();
                         Notification::make()->success()->title('تم تسجيل الدفعة بنجاح')->send();
                     }),
                 Tables\Actions\Action::make('print')

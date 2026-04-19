@@ -8,6 +8,7 @@ class CreateSupplierInvoice extends CreateRecord {
     protected function getRedirectUrl(): string { return $this->getResource()::getUrl('index'); }
     protected function mutateFormDataBeforeCreate(array $data): array {
         $data['created_by'] = auth()->id();
+        $data['total_amount'] = collect($data['items'] ?? [])->sum('total_egp');
         return $data;
     }
     protected function afterCreate(): void {

@@ -90,6 +90,9 @@ class CustomerInvoice extends Model
                     ->where('branch_id', $invoice->branch_id)
                     ->increment('quantity', $item->quantity);
             }
+            \App\Models\StockMovement::where('reference_type', CustomerInvoice::class)
+                ->where('reference_id', $invoice->id)
+                ->delete();
             $invoice->payments()->delete();
             \App\Models\AccountTransaction::where('reference_type', CustomerInvoice::class)
                 ->where('reference_id', $invoice->id)

@@ -73,8 +73,11 @@ class SupplierInvoice extends Model
                 \App\Models\BranchStock::where('product_id', $item->product_id)
                     ->where('branch_id', $invoice->branch_id)
                     ->decrement('quantity', $item->quantity);
-                $item->stockBatch()->delete();
+                \App\Models\StockBatch::where('supplier_invoice_item_id', $item->id)->delete();
             }
+            \App\Models\StockMovement::where('reference_type', SupplierInvoice::class)
+                ->where('reference_id', $invoice->id)
+                ->delete();
             $invoice->payments()->delete();
             \App\Models\AccountTransaction::where('reference_type', SupplierInvoice::class)
                 ->where('reference_id', $invoice->id)

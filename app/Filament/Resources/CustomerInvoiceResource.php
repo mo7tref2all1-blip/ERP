@@ -49,7 +49,16 @@ class CustomerInvoiceResource extends Resource
                     ->label('رقم الفاتورة')
                     ->required()
                     ->unique(ignoreRecord: true)
-                    ->default(fn () => CustomerInvoice::generateNumber()),
+                    ->default(function () {
+                        $year = date('Y');
+                        $count = CustomerInvoice::whereYear('created_at', $year)->count() + 1;
+                        $number = 'INV-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+                        while (CustomerInvoice::where('invoice_number', $number)->exists()) {
+                            $count++;
+                            $number = 'INV-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+                        }
+                        return $number;
+                    }),
                 Forms\Components\DatePicker::make('invoice_date')
                     ->label('تاريخ الفاتورة')
                     ->required()
@@ -95,7 +104,7 @@ class CustomerInvoiceResource extends Resource
                             ->numeric()
                             ->required()
                             ->minValue(0.001)
-                            ->live()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateLineTotal($get, $set)),
                         Forms\Components\TextInput::make('default_price')
                             ->label('السعر الافتراضي')
@@ -108,7 +117,7 @@ class CustomerInvoiceResource extends Resource
                             ->required()
                             ->minValue(0)
                             ->prefix('ج.م')
-                            ->live()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateLineTotal($get, $set)),
                         Forms\Components\TextInput::make('discount_percent')
                             ->label('خصم %')
@@ -117,7 +126,7 @@ class CustomerInvoiceResource extends Resource
                             ->minValue(0)
                             ->maxValue(auth()->user()?->hasRole('salesperson') ? $maxDiscountPercent : 100)
                             ->suffix('%')
-                            ->live()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateLineTotal($get, $set)),
                         Forms\Components\TextInput::make('total')
                             ->label('الإجمالي')
@@ -260,11 +269,22 @@ class CustomerInvoiceResource extends Resource
                         Forms\Components\Textarea::make('notes')->label('ملاحظات')->rows(2),
                     ])
                     ->action(function (CustomerInvoice $record, array $data) {
-                        $record->payments()->create([
+                        $payment = $record->payments()->create([
                             ...$data,
                             'customer_id' => $record->customer_id,
                             'created_by' => auth()->id(),
                         ]);
+                        \App\Models\AccountTransaction::create([
+                            'bank_account_id' => $data['bank_account_id'],
+                            'type' => 'in',
+                            'amount' => $data['amount'],
+                            'transaction_date' => $data['payment_date'],
+                            'reference_type' => \App\Models\CustomerPayment::class,
+                            'reference_id' => $payment->id,
+                            'description' => 'دفعة من عميل - فاتورة: ' . $record->invoice_number,
+                            'created_by' => auth()->id(),
+                        ]);
+                        $record->updatePaymentStatus();
                         Notification::make()->success()->title('تم تسجيل الدفعة بنجاح')->send();
                     }),
                 Tables\Actions\Action::make('print')
