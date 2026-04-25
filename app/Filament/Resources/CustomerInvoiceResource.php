@@ -173,6 +173,11 @@ class CustomerInvoiceResource extends Resource
         $discount = floatval($get('discount_percent') ?? 0);
         $total = $qty * $price * (1 - $discount / 100);
         $set('total', round($total, 2));
+        $items = $get('../../items') ?? [];
+        $invoiceTotal = collect($items)->sum(fn ($item) => floatval($item['total'] ?? 0));
+        $set('../../total_amount', round($invoiceTotal, 2));
+        $discountAmount = floatval($get('../../discount_amount') ?? 0);
+        $set('../../net_amount', round($invoiceTotal - $discountAmount, 2));
     }
 
     protected static function updateTotals(Get $get, Set $set): void

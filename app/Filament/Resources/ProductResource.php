@@ -95,6 +95,30 @@ class ProductResource extends Resource
                     ->label('ملاحظات')
                     ->rows(3),
             ]),
+
+            Forms\Components\Section::make('المخزون الافتتاحي')->schema([
+                Forms\Components\Repeater::make('branchStock')
+                    ->relationship()
+                    ->label('رصيد الفروع')
+                    ->schema([
+                        Forms\Components\Select::make('branch_id')
+                            ->label('الفرع')
+                            ->relationship('branch', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->distinct(),
+                        Forms\Components\TextInput::make('quantity')
+                            ->label('الكمية')
+                            ->numeric()
+                            ->required()
+                            ->minValue(0)
+                            ->default(0),
+                    ])
+                    ->columns(2)
+                    ->addActionLabel('إضافة فرع')
+                    ->defaultItems(0),
+            ])->collapsible()->collapsed(),
         ]);
     }
 

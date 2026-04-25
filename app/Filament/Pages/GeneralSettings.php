@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class GeneralSettings extends Page implements HasForms
 {
@@ -36,6 +37,7 @@ class GeneralSettings extends Page implements HasForms
             'tax_number'      => Setting::get('tax_number'),
             'invoice_footer'  => Setting::get('invoice_footer', 'شكراً لتعاملكم معنا'),
             'logo_url'        => Setting::get('logo_url'),
+            'logo_upload'     => null,
         ]);
     }
 
@@ -71,8 +73,15 @@ class GeneralSettings extends Page implements HasForms
             ])->columns(2),
 
             Forms\Components\Section::make('الفواتير والشعار')->schema([
+                Forms\Components\FileUpload::make('logo_upload')
+                    ->label('رفع شعار الشركة (PNG/JPG)')
+                    ->image()
+                    ->disk('public')
+                    ->directory('logo')
+                    ->visibility('public')
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('logo_url')
-                    ->label('رابط شعار الشركة (URL)')
+                    ->label('أو رابط الشعار الحالي (URL)')
                     ->placeholder('https://example.com/logo.png')
                     ->columnSpanFull(),
                 Forms\Components\Textarea::make('invoice_footer')
@@ -96,7 +105,11 @@ class GeneralSettings extends Page implements HasForms
         Setting::set('company_email',   $data['company_email'] ?? '', 'general');
         Setting::set('tax_number',      $data['tax_number'] ?? '', 'general');
         Setting::set('invoice_footer',  $data['invoice_footer'] ?? '', 'invoices');
-        Setting::set('logo_url',        $data['logo_url'] ?? '', 'appearance');
+        if (!empty($data['logo_upload'])) {
+            Setting::set('logo_url', Storage::disk('public')->url($data['logo_upload']), 'appearance');
+        } else {
+            Setting::set('logo_url', $data['logo_url'] ?? '', 'appearance');
+        }
 
         Cache::flush();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CustomerInvoice;
+use App\Models\Setting;
 use App\Models\SupplierInvoice;
 
 class InvoicePrintController extends Controller
@@ -10,19 +11,25 @@ class InvoicePrintController extends Controller
     public function customerInvoice(CustomerInvoice $invoice)
     {
         $invoice->load(['customer', 'branch', 'items.product', 'payments.bankAccount']);
-
-        $html = view('invoices.customer-invoice-print', compact('invoice'))->render();
-
+        $logoPath = $this->resolveLogoPath();
+        $html = view('invoices.customer-invoice-print', compact('invoice', 'logoPath'))->render();
         return $this->streamPdf($html, "فاتورة-{$invoice->invoice_number}.pdf");
     }
 
     public function supplierInvoice(SupplierInvoice $invoice)
     {
         $invoice->load(['supplier', 'branch', 'items.product', 'payments.bankAccount']);
-
-        $html = view('invoices.supplier-invoice-print', compact('invoice'))->render();
-
+        $logoPath = $this->resolveLogoPath();
+        $html = view('invoices.supplier-invoice-print', compact('invoice', 'logoPath'))->render();
         return $this->streamPdf($html, "فاتورة-شراء-{$invoice->invoice_number}.pdf");
+    }
+
+    private function resolveLogoPath(): string
+    {
+        $logo = Setting::get('logo_url', '');
+        if (!$logo) return '';
+        if (str_starts_with($logo, 'http')) return $logo;
+        return storage_path('app/public/' . ltrim($logo, '/'));
     }
 
     private function streamPdf(string $html, string $filename)

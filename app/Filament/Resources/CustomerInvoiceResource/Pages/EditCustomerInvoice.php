@@ -8,21 +8,11 @@ class EditCustomerInvoice extends EditRecord {
     protected function getHeaderActions(): array { return [Actions\DeleteAction::make()->label('حذف')]; }
     protected function getRedirectUrl(): string { return $this->getResource()::getUrl('index'); }
     protected function mutateFormDataBeforeSave(array $data): array {
-        $total = 0;
-        foreach ($data['items'] ?? [] as $item) {
-            if (is_array($item)) {
-                $total += floatval($item['total'] ?? 0);
-            }
-        }
-        $data['total_amount'] = $total;
-        $data['net_amount'] = $total - floatval($data['discount_amount'] ?? 0);
-        if ($data['net_amount'] <= 0) {
-            \Filament\Notifications\Notification::make()
-                ->danger()
-                ->title('لا يمكن حفظ فاتورة بإجمالي صفر')
-                ->send();
-            $this->halt();
-        }
         return $data;
+    }
+    protected function afterSave(): void {
+        $total = $this->record->items()->sum('total');
+        $net = $total - floatval($this->record->discount_amount ?? 0);
+        $this->record->update(['total_amount' => $total, 'net_amount' => $net]);
     }
 }

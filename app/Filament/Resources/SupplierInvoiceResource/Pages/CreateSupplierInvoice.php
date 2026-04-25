@@ -8,23 +8,20 @@ class CreateSupplierInvoice extends CreateRecord {
     protected function getRedirectUrl(): string { return $this->getResource()::getUrl('index'); }
     protected function mutateFormDataBeforeCreate(array $data): array {
         $data['created_by'] = auth()->id();
-        $total = 0;
-        foreach ($data['items'] ?? [] as $item) {
-            if (is_array($item)) {
-                $total += floatval($item['total_egp'] ?? 0);
-            }
-        }
-        $data['total_amount'] = $total;
-        if ($data['total_amount'] <= 0) {
+        return $data;
+    }
+    protected function afterCreate(): void {
+        $total = $this->record->items()->sum('total_egp');
+        if ($total <= 0) {
+            $this->record->delete();
             \Filament\Notifications\Notification::make()
                 ->danger()
                 ->title('لا يمكن حفظ فاتورة بإجمالي صفر')
                 ->send();
-            $this->halt();
+            $this->redirect($this->getResource()::getUrl('create'));
+            return;
         }
-        return $data;
-    }
-    protected function afterCreate(): void {
-        app(InventoryService::class)->addStockFromPurchase($this->record);
+        $this->record->update(['total_amount' => $total]);
+        app(\App\Services\InventoryService::class)->addStockFromPurchase($this->record);
     }
 }

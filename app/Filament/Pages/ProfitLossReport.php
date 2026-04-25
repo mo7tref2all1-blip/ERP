@@ -2,14 +2,17 @@
 
 namespace App\Filament\Pages;
 
+use App\Exports\ProfitLossExport;
 use App\Models\CustomerInvoice;
 use App\Models\SupplierInvoice;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProfitLossReport extends Page implements HasForms
 {
@@ -29,6 +32,20 @@ class ProfitLossReport extends Page implements HasForms
     {
         $this->from_date = now()->startOfMonth()->toDateString();
         $this->to_date = now()->endOfMonth()->toDateString();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('export')
+                ->label('تصدير Excel')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->action(fn () => Excel::download(
+                    new ProfitLossExport($this->from_date, $this->to_date, $this->branch_id),
+                    'profit-loss-' . date('Y-m-d') . '.xlsx'
+                )),
+        ];
     }
 
     public function getReportData(): array

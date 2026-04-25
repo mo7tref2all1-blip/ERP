@@ -2,7 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use App\Exports\CustomerDebtsExport;
 use App\Models\Customer;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Filament\Tables;
@@ -10,6 +12,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerDebtsReport extends Page implements HasTable
 {
@@ -21,17 +24,27 @@ class CustomerDebtsReport extends Page implements HasTable
     protected static string $view = 'filament.pages.customer-debts-report';
     protected static ?int $navigationSort = 3;
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('export')
+                ->label('تصدير Excel')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->action(fn () => Excel::download(new CustomerDebtsExport(), 'customer-debts-' . date('Y-m-d') . '.xlsx')),
+        ];
+    }
+
     public function table(Table $table): Table
     {
         return $table
             ->query(
-                Customer::withSum('invoices as total_invoices_sum', 'net_amount')
-                    ->withSum('payments as total_payments_sum', 'amount')
-                    ->having(
-                        DB::raw('(COALESCE(opening_balance, 0) + COALESCE(total_invoices_sum, 0) - COALESCE(total_payments_sum, 0))'),
-                        '>',
-                        0
-                    )
+                Customer::selectRaw('customers.*,
+                    COALESCE((SELECT SUM(net_amount) FROM customer_invoices WHERE customer_id = customers.id AND deleted_at IS NULL), 0) as total_invoices_sum,
+                    COALESCE((SELECT SUM(amount) FROM customer_payments WHERE customer_id = customers.id), 0) as total_payments_sum
+                ')
+                ->whereNull('customers.deleted_at')
+                ->whereRaw('(COALESCE(opening_balance, 0) + COALESCE((SELECT SUM(net_amount) FROM customer_invoices WHERE customer_id = customers.id AND deleted_at IS NULL), 0) - COALESCE((SELECT SUM(amount) FROM customer_payments WHERE customer_id = customers.id), 0)) > 0')
             )
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('العميل')->searchable()->weight('bold'),

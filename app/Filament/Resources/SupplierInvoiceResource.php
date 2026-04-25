@@ -168,6 +168,9 @@ class SupplierInvoiceResource extends Resource
         $qty = floatval($get('quantity') ?? 0);
         $cost = floatval($get('cost_egp') ?? 0);
         $set('total_egp', round($qty * $cost, 2));
+        $items = $get('../../items') ?? [];
+        $total = collect($items)->sum(fn ($item) => floatval($item['total_egp'] ?? 0));
+        $set('../../total_amount', round($total, 2));
     }
 
     protected static function updateInvoiceTotal(Get $get, Set $set): void

@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Exports\InventoryExport;
 use App\Models\Branch;
 use App\Models\BranchStock;
 use App\Models\ProductCategory;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -15,6 +17,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InventoryReport extends Page implements HasForms, HasTable
 {
@@ -29,6 +32,17 @@ class InventoryReport extends Page implements HasForms, HasTable
     public ?int $branch_id = null;
     public ?int $category_id = null;
     public bool $low_stock_only = false;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('export')
+                ->label('تصدير Excel')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->action(fn () => Excel::download(new InventoryExport(), 'inventory-' . date('Y-m-d') . '.xlsx')),
+        ];
+    }
 
     public function table(Table $table): Table
     {

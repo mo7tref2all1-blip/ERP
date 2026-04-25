@@ -2,12 +2,15 @@
 
 namespace App\Filament\Pages;
 
+use App\Exports\SupplierDuesExport;
 use App\Models\Supplier;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SupplierDuesReport extends Page implements HasTable
 {
@@ -18,6 +21,17 @@ class SupplierDuesReport extends Page implements HasTable
     protected static ?string $navigationLabel = 'مستحقات الموردين';
     protected static string $view = 'filament.pages.supplier-dues-report';
     protected static ?int $navigationSort = 4;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('export')
+                ->label('تصدير Excel')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->action(fn () => Excel::download(new SupplierDuesExport(), 'supplier-dues-' . date('Y-m-d') . '.xlsx')),
+        ];
+    }
 
     public function table(Table $table): Table
     {
@@ -45,7 +59,7 @@ class SupplierDuesReport extends Page implements HasTable
                     ->color(fn (Supplier $record) => $record->balance > 0 ? 'danger' : 'success')
                     ->weight('bold'),
             ])
-            ->defaultSort('balance', 'desc')
+            ->defaultSort('name', 'asc')
             ->paginated([25, 50]);
     }
 }
