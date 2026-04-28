@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Filament\Pages;
-
 use App\Exports\CustomerDebtsExport;
 use App\Models\Customer;
 use Filament\Actions\Action;
@@ -13,17 +11,14 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
-
 class CustomerDebtsReport extends Page implements HasTable
 {
     use InteractsWithTable;
-
     protected static ?string $navigationIcon = 'heroicon-o-user-minus';
     protected static ?string $navigationGroup = 'التقارير';
     protected static ?string $navigationLabel = 'ديون العملاء';
     protected static string $view = 'filament.pages.customer-debts-report';
     protected static ?int $navigationSort = 3;
-
     protected function getHeaderActions(): array
     {
         return [
@@ -34,14 +29,14 @@ class CustomerDebtsReport extends Page implements HasTable
                 ->action(fn () => Excel::download(new CustomerDebtsExport(), 'customer-debts-' . date('Y-m-d') . '.xlsx')),
         ];
     }
-
     public function table(Table $table): Table
     {
         return $table
             ->query(
                 Customer::selectRaw('customers.*,
                     COALESCE((SELECT SUM(net_amount) FROM customer_invoices WHERE customer_id = customers.id AND deleted_at IS NULL), 0) as total_invoices_sum,
-                    COALESCE((SELECT SUM(amount) FROM customer_payments WHERE customer_id = customers.id), 0) as total_payments_sum
+                    COALESCE((SELECT SUM(amount) FROM customer_payments WHERE customer_id = customers.id), 0) as total_payments_sum,
+                    COALESCE(opening_balance, 0) + COALESCE((SELECT SUM(net_amount) FROM customer_invoices WHERE customer_id = customers.id AND deleted_at IS NULL), 0) - COALESCE((SELECT SUM(amount) FROM customer_payments WHERE customer_id = customers.id), 0) as balance_computed
                 ')
                 ->whereNull('customers.deleted_at')
                 ->whereRaw('(COALESCE(opening_balance, 0) + COALESCE((SELECT SUM(net_amount) FROM customer_invoices WHERE customer_id = customers.id AND deleted_at IS NULL), 0) - COALESCE((SELECT SUM(amount) FROM customer_payments WHERE customer_id = customers.id), 0)) > 0')
@@ -62,9 +57,8 @@ class CustomerDebtsReport extends Page implements HasTable
                     ->getStateUsing(fn (Customer $record) => $record->total_paid)
                     ->money('EGP')
                     ->color('success'),
-                Tables\Columns\TextColumn::make('balance')
+                Tables\Columns\TextColumn::make('balance_computed')
                     ->label('الرصيد المستحق')
-                    ->getStateUsing(fn (Customer $record) => $record->balance)
                     ->money('EGP')
                     ->color('danger')
                     ->weight('bold')
@@ -82,7 +76,7 @@ class CustomerDebtsReport extends Page implements HasTable
                     ->label('نوع العميل')
                     ->options(['individual' => 'فرد', 'company' => 'شركة']),
             ])
-            ->defaultSort('balance', 'desc')
+            ->defaultSort('balance_computed', 'desc')
             ->paginated([25, 50]);
     }
 }
