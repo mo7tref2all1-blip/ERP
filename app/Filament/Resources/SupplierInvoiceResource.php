@@ -88,55 +88,97 @@ class SupplierInvoiceResource extends Resource
                             ->required()
                             ->live()
                             ->columnSpan(2),
-                        Forms\Components\TextInput::make('quantity')
-                            ->label('الكمية')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0.001)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateItemTotal($get, $set)),
-                        Forms\Components\Radio::make('price_currency')
-                            ->label('عملة السعر')
-                            ->options(['egp' => 'جنيه مصري', 'usd' => 'دولار أمريكي'])
-                            ->default('egp')
-                            ->inline()
-                            ->live()
-                            ->dehydrated(false)
-                            ->columnSpanFull(),
-                        Forms\Components\TextInput::make('cost_usd')
-                            ->label('سعر الوحدة (دولار)')
-                            ->numeric()
-                            ->minValue(0)
-                            ->prefix('$')
-                            ->visible(fn (Get $get) => $get('price_currency') === 'usd')
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateFromDollar($get, $set)),
-                        Forms\Components\TextInput::make('dollar_rate')
-                            ->label('سعر الدولار (جنيه)')
-                            ->numeric()
-                            ->minValue(0)
-                            ->prefix('ج.م')
-                            ->visible(fn (Get $get) => $get('price_currency') === 'usd')
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateFromDollar($get, $set)),
-                        Forms\Components\TextInput::make('cost_egp')
-                            ->label('سعر الوحدة (جنيه)')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0)
-                            ->prefix('ج.م')
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateItemTotal($get, $set)),
-                        Forms\Components\TextInput::make('total_egp')
-                            ->label('الإجمالي (جنيه)')
-                            ->numeric()
-                            ->readOnly()
-                            ->prefix('ج.م'),
+
+                        // Wood section
+                        Forms\Components\Fieldset::make('بيانات الخشب')->schema([
+                            Forms\Components\TextInput::make('m3_quantity')
+                                ->label('الكمية م³ (X)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateWoodCosts($get, $set)),
+                            Forms\Components\TextInput::make('usd_price_per_m3')
+                                ->label('سعر م³ بالدولار (Y)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->prefix('$')
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateWoodCosts($get, $set)),
+                            Forms\Components\TextInput::make('dollar_rate')
+                                ->label('سعر الدولار ج.م (R1)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->prefix('ج.م')
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateWoodCosts($get, $set)),
+                            Forms\Components\TextInput::make('boards_per_m3')
+                                ->label('عدد الألواح/م³ (Z)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateWoodCosts($get, $set)),
+                        ])->columns(4)->columnSpanFull(),
+
+                        // Customs section
+                        Forms\Components\Fieldset::make('بيانات الجمارك')->schema([
+                            Forms\Components\TextInput::make('customs_usd_price')
+                                ->label('سعر الجمارك بالدولار (Y2)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->prefix('$')
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateWoodCosts($get, $set)),
+                            Forms\Components\TextInput::make('customs_exchange_rate')
+                                ->label('سعر صرف الجمارك (R2)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->prefix('ج.م')
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateWoodCosts($get, $set)),
+                            Forms\Components\TextInput::make('customs_percentage')
+                                ->label('نسبة الجمارك % (C%)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->suffix('%')
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn (Get $get, Set $set) => static::calculateWoodCosts($get, $set)),
+                        ])->columns(3)->columnSpanFull(),
+
+                        // Computed results
+                        Forms\Components\Fieldset::make('النتائج المحسوبة')->schema([
+                            Forms\Components\TextInput::make('total_boards')
+                                ->label('إجمالي الألواح')
+                                ->numeric()
+                                ->readOnly()
+                                ->prefix('لوح'),
+                            Forms\Components\TextInput::make('customs_amount')
+                                ->label('قيمة الجمارك (ج.م)')
+                                ->numeric()
+                                ->readOnly()
+                                ->prefix('ج.م'),
+                            Forms\Components\TextInput::make('cost_per_board')
+                                ->label('تكلفة اللوح (ج.م)')
+                                ->numeric()
+                                ->readOnly()
+                                ->prefix('ج.م'),
+                            Forms\Components\TextInput::make('total_egp')
+                                ->label('إجمالي الصنف (ج.م)')
+                                ->numeric()
+                                ->readOnly()
+                                ->prefix('ج.م'),
+                        ])->columns(4)->columnSpanFull(),
+
+                        // Hidden fields populated by calculation
+                        Forms\Components\Hidden::make('quantity'),
+                        Forms\Components\Hidden::make('cost_egp'),
+                        Forms\Components\Hidden::make('cost_usd'),
+
                         Forms\Components\TextInput::make('notes')
                             ->label('ملاحظات')
-                            ->columnSpan(2),
+                            ->columnSpanFull(),
                     ])
-                    ->columns(4)
+                    ->columns(2)
                     ->addActionLabel('إضافة صنف')
                     ->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => static::updateInvoiceTotal($get, $set))
@@ -171,6 +213,41 @@ class SupplierInvoiceResource extends Resource
         $items = $get('../../items') ?? [];
         $total = collect($items)->sum(fn ($item) => floatval($item['total_egp'] ?? 0));
         $set('../../total_amount', round($total, 2));
+    }
+
+    protected static function calculateWoodCosts(Get $get, Set $set): void
+    {
+        $x = floatval($get('m3_quantity') ?? 0);        // M3 quantity
+        $y = floatval($get('usd_price_per_m3') ?? 0);   // USD/M3
+        $r1 = floatval($get('dollar_rate') ?? 0);        // EGP per USD (existing field)
+        $z = floatval($get('boards_per_m3') ?? 0);       // boards per M3
+        $y2 = floatval($get('customs_usd_price') ?? 0);  // customs USD price/M3
+        $r2 = floatval($get('customs_exchange_rate') ?? 0); // customs exchange rate
+        $c = floatval($get('customs_percentage') ?? 0);  // customs %
+
+        $totalBoards = $x * $z;
+        $totalUsd = $x * $y;
+        $totalEgp = $totalUsd * $r1;
+
+        $customsBaseUsd = $x * $y2;
+        $customsBaseEgp = $customsBaseUsd * $r2;
+        $customsAmount = $customsBaseEgp * ($c / 100);
+
+        $costPerBoard = ($totalBoards > 0) ? ($totalEgp + $customsAmount) / $totalBoards : 0;
+
+        $set('total_boards', round($totalBoards, 2));
+        $set('customs_amount', round($customsAmount, 2));
+        $set('cost_per_board', round($costPerBoard, 2));
+        $set('total_egp', round($totalEgp, 2));
+
+        // Populate hidden fields used by inventory service
+        $set('quantity', round($totalBoards, 3));
+        $set('cost_egp', round($costPerBoard, 4));
+        $set('cost_usd', round($y, 4));
+
+        $items = $get('../../items') ?? [];
+        $invoiceTotal = collect($items)->sum(fn ($item) => floatval($item['total_egp'] ?? 0));
+        $set('../../total_amount', round($invoiceTotal, 2));
     }
 
     protected static function updateInvoiceTotal(Get $get, Set $set): void
